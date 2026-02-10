@@ -10,7 +10,7 @@ from langchain.agents import create_agent
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
-from langchain_core.output_parsers import BaseOutputParser, StrOutputParser
+from langchain_core.output_parsers import BaseOutputParser
 from langchain_core.tools import BaseTool, create_retriever_tool
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -53,7 +53,7 @@ class Chat(BaseModel):
     def query[T](
         self,
         human_message: HumanMessage,
-        output_parser: BaseOutputParser[T] = StrOutputParser(),
+        output_parser: BaseOutputParser[T],
     ) -> Awaitable[T]:
         llm = self.chat_model | output_parser
 
@@ -89,9 +89,9 @@ class Chat(BaseModel):
     def query_by_agent[T](
         self,
         human_message: HumanMessage,
-        output_parser: BaseOutputParser[T] = StrOutputParser(),
+        output_parser: BaseOutputParser[T],
     ) -> T:
-        agent = create_agent(
+        agent: Any = create_agent(
             self.chat_model,
             [*self.functions, *self._create_retriever_tools()],
             system_prompt=self.system_message,
