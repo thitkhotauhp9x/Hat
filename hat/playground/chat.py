@@ -1,8 +1,9 @@
 import logging
 import operator
+from enum import StrEnum
 from functools import partial
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Literal, Mapping, Sequence
+from typing import Any, Awaitable, Callable, Mapping
 from warnings import deprecated
 from xml.etree.ElementTree import Element, tostring
 
@@ -18,11 +19,15 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
-WRITE_MODE_MAPPING: Mapping[
-    Literal["w", "a"], Callable[[Sequence[Any], Sequence[Any]], None]
-] = {
-    "w": operator.eq,
-    "a": list.extend,
+
+class WriteMode(StrEnum):
+    WRITE = "w"
+    APPEND = "a"
+
+
+WRITE_MODE_MAPPING: Mapping[WriteMode, Any] = {
+    WriteMode.WRITE: operator.eq,
+    WriteMode.APPEND: list.extend,
 }
 
 
@@ -32,7 +37,7 @@ def create_xml(tag_name: str, text: str) -> str:
     return tostring(root, encoding="utf-8")
 
 
-MESSAGE_FLATTING_MAPPING = {
+MESSAGE_FLATTING_MAPPING: Mapping[type[BaseMessage], Callable[[str], str]] = {
     HumanMessage: partial(create_xml, tag_name="user_query"),
     AIMessage: partial(create_xml, tag_name="assistance_response"),
 }
@@ -105,7 +110,7 @@ class Chat(BaseModel):
         return output_parser.invoke(last_message)
 
     async def update_prompt_messages(
-        self, human_message: HumanMessage, mode: Literal["w", "a"] = "w"
+        self, human_message: HumanMessage, mode: WriteMode = WriteMode.WRITE
     ) -> None:
         assistance_response = await self.chat_model.ainvoke(
             [
