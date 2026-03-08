@@ -1,12 +1,6 @@
 repos:
   - repo: local
     hooks:
-#      - id: black
-#        name: black
-#        entry: poetry run black
-#        language: python
-#        args: [ "--line-length=80" ]
-
       - id: isort
         name: Isort
         entry: poetry run isort
@@ -14,33 +8,33 @@ repos:
         types_or: [ python, pyi ]
 
       - id: ruff-format
-        name: Run Ruff Formatter
+        name: Ruff
         entry: poetry run ruff format
         language: python
         types_or: [ python, pyi ]
 
       - id: mypy
-        name: mypy
+        name: Mypy
         entry: poetry run mypy
         language: python
         types_or: [ python, pyi ]
         args: [ "--check-untyped-defs" ]
 
       - id: pylint
-        name: pylint
+        name: Pylint
         entry: pylint
         language: python
         types_or: [ python, pyi ]
         args: ["--disable", "missing-module-docstring,missing-class-docstring,missing-function-docstring"]
 
       - id: codespell
-        name: codespell
+        name: CodeSpell
         entry: codespell
         language: python
         types_or: [ python, pyi ]
 
       - id: pyright
-        name: pyright
+        name: Pyright
         entry: poetry run pyright
         language: python
         types_or: [ python, pyi ]
