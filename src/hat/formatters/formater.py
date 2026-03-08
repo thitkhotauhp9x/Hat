@@ -1,10 +1,10 @@
+import shlex
 import textwrap
 import urllib.parse
 from collections import UserString
-import shlex
 from xml.etree import ElementTree
 
-from hat.formatters.block_code_language import BlockCodeLanguage
+from hat.formatters.block_code_language import BlockCodeLanguage  # type: ignore
 
 
 class StrFormatter(UserString):
