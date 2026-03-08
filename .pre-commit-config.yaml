@@ -7,6 +7,12 @@ repos:
 #        language: python
 #        args: [ "--line-length=80" ]
 
+      - id: isort
+        name: Isort
+        entry: poetry run isort
+        language: python
+        types_or: [ python, pyi ]
+
       - id: ruff-format
         name: Run Ruff Formatter
         entry: poetry run ruff format
@@ -38,14 +44,3 @@ repos:
         entry: poetry run pyright
         language: python
         types_or: [ python, pyi ]
-
-#
-#      - id: shellcheck
-#        name: shellcheck
-#        entry: shellcheck
-#        language: system
-#        files: \.sh$
-#        args: []
-#        require_serial: true
-#        additional_dependencies: [ ]
-#        minimum_pre_commit_version: "2.9.2"
