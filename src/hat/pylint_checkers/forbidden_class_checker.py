@@ -1,5 +1,5 @@
 import astroid
-from astroid import Name
+from astroid.nodes import Name
 from pylint.checkers import BaseChecker
 
 FORBIDDEN_CLASSES = {"ChatModel"}
