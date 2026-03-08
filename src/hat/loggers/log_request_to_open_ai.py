@@ -9,13 +9,14 @@ from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_core.outputs import LLMResult
 from langchain_openai import ChatOpenAI
 from pydantic import TypeAdapter
-from pytest import MonkeyPatch
 
 logger = getLogger(__name__)
 
 
 @contextmanager
 def mock_generate_from_base_chat_model():
+    from pytest import MonkeyPatch
+
     monkeypatch = MonkeyPatch()
     generate_from_base_chat_model = BaseChatModel.generate
 
