@@ -19,18 +19,14 @@ repos:
         language: python
         types_or: [ python, pyi ]
         args: [ "--check-untyped-defs" ]
-        require_serial: true
-#
-#      - id: pylint
-#        name: pylint
-#        entry: pylint
-#        language: python
-#        types_or: [ python, pyi ]
-#        args: ["--disable", "missing-module-docstring,missing-class-docstring,missing-function-docstring"]
-#        require_serial: true
-#        additional_dependencies: [ ]
-#        minimum_pre_commit_version: "2.9.2"
-#
+
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: python
+        types_or: [ python, pyi ]
+        args: ["--disable", "missing-module-docstring,missing-class-docstring,missing-function-docstring"]
+
 #      - id: codespell
 #        name: codespell
 #        entry: codespell
