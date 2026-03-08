@@ -33,6 +33,12 @@ repos:
         language: python
         types_or: [ python, pyi ]
 
+      - id: pyright
+        name: pyright
+        entry: poetry run pyright
+        language: python
+        types_or: [ python, pyi ]
+
 #
 #      - id: shellcheck
 #        name: shellcheck
