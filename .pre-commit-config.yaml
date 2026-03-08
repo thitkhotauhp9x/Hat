@@ -13,15 +13,13 @@ repos:
         language: python
         types_or: [ python, pyi ]
 
-#      - id: mypy
-#        name: mypy
-#        entry: mypy
-#        language: python
-#        types_or: [ python, pyi ]
-#        args: [ "--check-untyped-defs" ]
-#        require_serial: true
-#        additional_dependencies: [ ]
-#        minimum_pre_commit_version: "2.9.2"
+      - id: mypy
+        name: mypy
+        entry: poetry run mypy
+        language: python
+        types_or: [ python, pyi ]
+        args: [ "--check-untyped-defs" ]
+        require_serial: true
 #
 #      - id: pylint
 #        name: pylint
