@@ -1,0 +1,54 @@
+repos:
+  - repo: local
+    hooks:
+#      - id: black
+#        name: black
+#        entry: poetry run black
+#        language: python
+#        args: [ "--line-length=80" ]
+
+      - id: ruff-format
+        name: Run Ruff Formatter
+        entry: poetry run ruff format
+        language: python
+        types_or: [ python, pyi ]
+
+#      - id: mypy
+#        name: mypy
+#        entry: mypy
+#        language: python
+#        types_or: [ python, pyi ]
+#        args: [ "--check-untyped-defs" ]
+#        require_serial: true
+#        additional_dependencies: [ ]
+#        minimum_pre_commit_version: "2.9.2"
+#
+#      - id: pylint
+#        name: pylint
+#        entry: pylint
+#        language: python
+#        types_or: [ python, pyi ]
+#        args: ["--disable", "missing-module-docstring,missing-class-docstring,missing-function-docstring"]
+#        require_serial: true
+#        additional_dependencies: [ ]
+#        minimum_pre_commit_version: "2.9.2"
+#
+#      - id: codespell
+#        name: codespell
+#        entry: codespell
+#        language: python
+#        types_or: [ python, pyi ]
+#        args: []
+#        require_serial: true
+#        additional_dependencies: [ ]
+#        minimum_pre_commit_version: "2.9.2"
+#
+#      - id: shellcheck
+#        name: shellcheck
+#        entry: shellcheck
+#        language: system
+#        files: \.sh$
+#        args: []
+#        require_serial: true
+#        additional_dependencies: [ ]
+#        minimum_pre_commit_version: "2.9.2"

@@ -1,6 +1,10 @@
+import hashlib
 import logging
+import pickle
+import shelve
 import subprocess
 import uuid
+from contextlib import ContextDecorator
 from inspect import signature
 from pathlib import Path
 from typing import Literal
@@ -9,7 +13,14 @@ import pytest
 import yaml
 from jinja2 import Environment, PackageLoader, select_autoescape
 from langchain_openai import ChatOpenAI
-from openai.resources.chat import AsyncCompletions, Completions
+from openai import APIResponse
+from openai.resources import ChatWithRawResponse
+from openai.resources.chat import (
+    AsyncCompletions,
+    Completions,
+    CompletionsWithRawResponse,
+)
+from openai.types.chat import ChatCompletion
 from pydantic import BaseModel
 from pytest import MonkeyPatch
 
@@ -27,7 +38,7 @@ logger.addHandler(stream_handler)
 
 @pytest.fixture()
 def chat_model() -> ChatOpenAI:
-    return ChatOpenAI(model="gpt-4o-mini")
+    return ChatOpenAI(model="gpt-4o-mini", max_tokens=100)
 
 
 def get_argument_value(attr, func, *args, **kwargs):
@@ -37,29 +48,67 @@ def get_argument_value(attr, func, *args, **kwargs):
     return bound_args.arguments.get(attr)
 
 
+class LogAsyncRequestToOpenAI(ContextDecorator):
+    def __enter__(self):
+        func = Completions.create
+
+        def wrap_request(*args, **kwargs):
+            uid = uuid.uuid4()
+
+            for line in yaml.dump(kwargs, allow_unicode=True).splitlines():
+                logger.debug("Request  [%s] %s", uid, line)
+
+            response = func(*args, **kwargs)
+
+            for line in yaml.dump(response.parse(), allow_unicode=True).splitlines():
+                logger.debug("Response [%s] %s", uid, line)
+
+            return response
+
+        monkeypatch = MonkeyPatch()
+        monkeypatch.setattr(Completions, "create", wrap_request)
+        yield monkeypatch
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+
+import json
+import hashlib
+import shelve
+from openai.types.chat import ChatCompletion
+
+
 def _log_sync_request_to_openai(monkeypatch: MonkeyPatch):
     func = Completions.create
 
-    def wrap_request(*args, **kwargs):
-        uid = uuid.uuid4()
+    def create(*args, **kwargs):
+        logger.debug("Request to OpenAI:\n%s", kwargs)
+        logger.debug("Content:\n%s", kwargs["messages"][-1]["content"])
 
-        for line in yaml.dump(kwargs, allow_unicode=True).splitlines():
-            logger.debug("Request  [%s] %s", uid, line)
+        key = hashlib.sha256(
+            json.dumps(kwargs, sort_keys=True, default=str).encode()
+        ).hexdigest()
 
-        response = func(*args, **kwargs)
+        with shelve.open("openai.db") as db:
+            if key not in db:
+                resp = func(*args, **kwargs)
 
-        for line in yaml.dump(response.parse(), allow_unicode=True).splitlines():
-            logger.debug("Response [%s] %s", uid, line)
+                completion = resp.parse()  # ⭐ fix here
 
-        return response
+                db[key] = completion.model_dump()
 
-    monkeypatch.setattr(Completions, "create", wrap_request)
+            data = db[key]
+
+        return ChatCompletion.model_validate(data)
+
+    monkeypatch.setattr(Completions, "create", create)
 
 
 def _log_async_request_to_openai(monkeypatch: MonkeyPatch):
     func = AsyncCompletions.create
 
-    async def wrap_request(*args, **kwargs):
+    async def create(*args, **kwargs):
         uid = uuid.uuid4()
 
         for line in yaml.dump(kwargs, allow_unicode=True).splitlines():
@@ -72,7 +121,7 @@ def _log_async_request_to_openai(monkeypatch: MonkeyPatch):
 
         return response
 
-    monkeypatch.setattr(AsyncCompletions, "create", wrap_request)
+    monkeypatch.setattr(AsyncCompletions, "create", create)
 
 
 @pytest.fixture()

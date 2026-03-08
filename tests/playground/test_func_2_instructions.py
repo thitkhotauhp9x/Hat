@@ -1,7 +1,7 @@
 import pytest
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from playground.chat import Chat
+from playground import Chat
 from tools.func_2_instructions import convert_func_to_instructions
 from tests.playground.assertion import assert_is_same_content
 

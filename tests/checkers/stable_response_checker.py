@@ -6,7 +6,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate, SystemMessagePromptTemplate
 from pydantic import BaseModel, Field
 
-from playground.chat import MESSAGE_FLATTING_MAPPING, Chat
+from hat.playground.chat import MESSAGE_FLATTING_MAPPING, Chat
 
 
 class StableResponseCheckerResult(BaseModel):
@@ -53,7 +53,9 @@ class StableResponseChecker:
             input_variables=[],
             partial_variables={
                 "format_instructions": textwrap.indent(
-                    output_parser.get_format_instructions(), "  ", lambda line: True
+                    output_parser.get_format_instructions(),
+                    "  ",
+                    lambda line: True,
                 ).strip(),
             },
         )
