@@ -1,4 +1,4 @@
-from astroid import Assert
+from astroid.nodes import Assert
 from pylint.checkers import BaseChecker
 
 
