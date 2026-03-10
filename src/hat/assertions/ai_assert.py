@@ -4,6 +4,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate, SystemMessagePromptTemplate
 
 from hat.assertions.models.assertion_response import AssertionResponse
+from hat.formatters.prompt_formater import PromptFormatter
 
 
 def ai_assert(response: str, assertion: str, chat_model: BaseChatModel) -> None:
@@ -73,13 +74,9 @@ The assistant confirmed that the "Age" component does not exist.
         [
             *system_prompt_template,
             HumanMessage(
-                content=f"""<response>
-{response}
-</response>
+                content=f"""{PromptFormatter(response).create_xml_content("response")}
 
-<assertion>
-{assertion}
-</assertion>"""
+{PromptFormatter(assertion).create_xml_content("assertion")}"""
             ),
         ]
     )
