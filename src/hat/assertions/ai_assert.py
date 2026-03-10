@@ -1,10 +1,9 @@
-from typing import Annotated
-
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate, SystemMessagePromptTemplate
-from pydantic import BaseModel, Field
+
+from hat.assertions.models.assertion_response import AssertionResponse
 
 
 def ai_assert(response: str, assertion: str, chat_model: BaseChatModel) -> None:
@@ -46,23 +45,6 @@ The assistant confirmed that the "Age" component does not exist.
 }}
 </assistance_response>
 """
-
-    class AssertionResponse(BaseModel):
-        assertionIsTrue: Annotated[
-            bool,
-            Field(
-                description="true if the assertion is fully supported by the response; otherwise false."
-            ),
-        ]
-        errorMessage: Annotated[
-            str,
-            Field(
-                description='empty string "" if true; otherwise provide a clear error explanation.'
-            ),
-        ]
-        reasoning: Annotated[
-            str, Field(description="step-by-step explanation of the evaluation")
-        ]
 
     output_parser = PydanticOutputParser[AssertionResponse](
         pydantic_object=AssertionResponse

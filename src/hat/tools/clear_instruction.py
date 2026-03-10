@@ -1,10 +1,8 @@
 from typing import TypedDict
 
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-from langgraph.graph import StateGraph, END
-
-from tests.conftest import log_request_to_openai
+from langgraph.graph import END, StateGraph
 
 
 # ---- State ----
