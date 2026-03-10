@@ -20,6 +20,9 @@ class PromptFormatter(UserString):
     def escape(self) -> str:
         return self.data.encode("unicode_escape").decode()
 
+    def block_quote(self) -> str:
+        return textwrap.indent(self.data, prefix="> ", predicate=lambda line: True)
+
     def create_block_code(self, lang: BlockCodeLanguage) -> str:
         if __debug__:
             if "```" in self.data:
