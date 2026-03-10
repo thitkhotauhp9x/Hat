@@ -1,11 +1,6 @@
-from typing import Mapping, Any
-
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import BaseMessage, AIMessage
-from langchain_core.output_parsers import (
-    StrOutputParser,
-)
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+from langchain_core.output_parsers import StrOutputParser
 
 
 def parse(
