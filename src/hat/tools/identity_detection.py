@@ -1,9 +1,9 @@
-from typing import Awaitable
+from collections.abc import Awaitable
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langchain_core.output_parsers import StrOutputParser
+from langchain_openai import ChatOpenAI
 
-from playground.chat import Chat
+from hat.playground.chat import Chat  # type: ignore
 
 IDENTITY_DETECTION_SYSTEM_PROMPT = """# Identity
 
@@ -26,8 +26,9 @@ def detect_identity(user_query: str) -> Awaitable[str]:
             ),
             AIMessage(content="You are a coding assistant."),
         ],
+        chat_model=ChatOpenAI(model="gpt-4o-mini"),
+        tools=[],
     )
     return chat.query(
         human_message=HumanMessage(content=user_query),
-        output_parser=StrOutputParser(),
     )
