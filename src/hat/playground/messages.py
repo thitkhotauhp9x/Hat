@@ -1,18 +1,8 @@
 from collections import UserList
-from xml.etree.ElementTree import Element, tostring
 
-from langchain_core.messages import (
-    BaseMessage,
-    SystemMessage,
-    AIMessage,
-    HumanMessage,
-)
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 
-
-def create_xml(tag_name: str, text: str) -> str:
-    root = Element(tag_name)
-    root.text = text
-    return tostring(root, encoding="utf-8")
+from hat.formatters.prompt_formater import PromptFormatter
 
 
 class Messages(UserList[BaseMessage]):
@@ -22,10 +12,13 @@ class Messages(UserList[BaseMessage]):
             if isinstance(message, SystemMessage):
                 str_data += message.text + "\n"
             elif isinstance(message, AIMessage):
-                str_data += create_xml("assistance_response", message.text)
-                pass
+                str_data += PromptFormatter(message.text).create_xml_content(
+                    "assistance_response"
+                )
             elif isinstance(message, HumanMessage):
-                str_data += create_xml("user_query", message.text)
+                str_data += PromptFormatter(message.text).create_xml_content(
+                    "user_query"
+                )
             else:
-                pass
+                raise ValueError("Does not support!")
         return str_data

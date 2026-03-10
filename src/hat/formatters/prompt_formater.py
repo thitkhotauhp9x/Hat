@@ -7,7 +7,7 @@ from xml.etree import ElementTree
 from hat.formatters.block_code_language import BlockCodeLanguage  # type: ignore
 
 
-class StrFormatter(UserString):
+class PromptFormatter(UserString):
     def quote_url(self) -> str:
         return urllib.parse.quote(self.data)
 
