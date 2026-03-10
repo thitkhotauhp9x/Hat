@@ -1,4 +1,4 @@
-from hat.instructions.base_instruction import BaseInstruction
+from hat.instructions.base_instruction import BaseInstruction  # type: ignore
 
 
 class FunctionConverterInstruction(BaseInstruction):

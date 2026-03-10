@@ -3,8 +3,8 @@ from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.prompts import PromptTemplate, SystemMessagePromptTemplate
 
-from hat.assertions.models.assertion_response import AssertionResponse
-from hat.formatters.prompt_formater import PromptFormatter
+from hat.assertions.models.assertion_response import AssertionResponse  # type: ignore
+from hat.formatters.prompt_formater import PromptFormatter  # type: ignore
 
 
 def ai_assert(response: str, assertion: str, chat_model: BaseChatModel) -> None:

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from hat.formatters.prompt_formater import PromptFormatter
-from hat.instructions.base_instruction import BaseInstruction
+from hat.formatters.prompt_formater import PromptFormatter  # type: ignore
+from hat.instructions.base_instruction import BaseInstruction  # type: ignore
 
 
 @dataclass
