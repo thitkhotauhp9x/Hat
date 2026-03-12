@@ -11,8 +11,15 @@ import pdfplumber
 from PIL import ImageDraw
 
 from hat.comparators.models.box import Box  # type: ignore
-from hat.comparators.models.ptpx import Pt, Px, pt2px  # type: ignore
-from hat.comparators.models.unit import FontName, FontPath, em2px
+from hat.comparators.models.font_box import FontBox
+from hat.comparators.models.unit import (
+    FontName,
+    FontPath,  # type: ignore
+    Pt,
+    Px,
+    em2px,
+    pt2px,
+)
 
 
 def find_font_path(
@@ -25,12 +32,11 @@ def find_font_path(
 
 
 @lru_cache
-def load_font_info(font_dir: Path, fontname: str):
+def load_font_info(font_dir: Path, fontname: str) -> FontBox:
     font_mapping = PdfToBoxes.create_mapping_fontname(font_dir)
     font_path = find_font_path(font_mapping, FontName(fontname))
     assert font_path is not None
-    font_info = PdfToBoxes.load_font_info(font_path)
-    return font_info
+    return PdfToBoxes.load_font_info(font_path)
 
 
 @dataclass
@@ -95,7 +101,9 @@ class PdfToBoxes:
                 [
                     "fontforge",
                     "-script",
-                    Path("fontforge_scripts/fontname_mapping.py").absolute().as_posix(),
+                    Path("../fontforge_scripts/fontname_mapping.py")
+                    .absolute()
+                    .as_posix(),
                     "-d",
                     font_dir.as_posix(),
                     "-o",
@@ -107,13 +115,13 @@ class PdfToBoxes:
             return json.loads(temp_path.read_text())
 
     @staticmethod
-    def load_font_info(font_path: Path):
+    def load_font_info(font_path: Path) -> FontBox:
         with tempfile.NamedTemporaryFile(suffix=".output.json") as temp_file:
             subprocess.run(
                 [
                     "fontforge",
                     "-script",
-                    Path("fontforge_scripts/font_info.py").absolute().as_posix(),
+                    Path("../fontforge_scripts/font_info.py").absolute().as_posix(),
                     "-f",
                     font_path.as_posix(),
                     "-o",
@@ -122,8 +130,7 @@ class PdfToBoxes:
             )
             temp_path = Path(temp_file.name)
             assert temp_path.exists()
-            data = json.loads(temp_path.read_text())
-            return data
+            return FontBox.model_validate_json(temp_path.read_text())
 
     @staticmethod
     def correct(pdf_path: Path, resolution: int):
@@ -131,37 +138,29 @@ class PdfToBoxes:
 
         with PdfToBoxes.extract_font(pdf_path) as font_dir:
             for box in boxes:
-                font_info = load_font_info(font_dir, box.fontname)
-                for char in font_info["chars"]:
-                    label = char["char"]
+                font_box = load_font_info(font_dir, box.fontname)
+                for char in font_box.chars:
+                    label = char.char
                     if label == box.label:
-                        x_min = char["box"]["x_min"]
-                        y_min = char["box"]["y_min"]
-                        x_max = char["box"]["x_max"]
-                        y_max = char["box"]["y_max"]
+                        x_min = char.box.x_min
+                        y_min = char.box.y_min
+                        x_max = char.box.x_max
+                        y_max = char.box.y_max
 
-                        x_min_px = em2px(
-                            x_min, box.font_size, resolution, font_info["em"]
-                        )
-                        y_min_px = em2px(
-                            y_min, box.font_size, resolution, font_info["em"]
-                        )
-                        x_max_px = em2px(
-                            x_max, box.font_size, resolution, font_info["em"]
-                        )
-                        y_max_px = em2px(
-                            y_max, box.font_size, resolution, font_info["em"]
-                        )
+                        x_min_px = em2px(x_min, box.font_size, resolution, font_box.em)
+                        y_min_px = em2px(y_min, box.font_size, resolution, font_box.em)
+                        x_max_px = em2px(x_max, box.font_size, resolution, font_box.em)
+                        y_max_px = em2px(y_max, box.font_size, resolution, font_box.em)
 
                         width = x_max_px - x_min_px
                         height = y_max_px - y_min_px
                         x = box.x + x_min_px
                         y = box.y + (
                             em2px(
-                                font_info["ascent"],
+                                font_box.ascent,
                                 box.font_size,
                                 resolution,
-                                font_info["em"],
+                                font_box.em,
                             )
                             - y_max_px
                         )
@@ -175,7 +174,7 @@ class PdfToBoxes:
 
 
 def main():
-    PdfToBoxes().correct(Path("/tests/data/doc1.pdf"), 300)
+    PdfToBoxes().correct(Path("/Users/manhdt/Projects/Hat/tests/data/doc1.pdf"), 300)
 
 
 if __name__ == "__main__":
