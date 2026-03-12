@@ -6,18 +6,13 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import NewType
 
 import pdfplumber
 from PIL import ImageDraw
 
 from hat.comparators.models.box import Box  # type: ignore
 from hat.comparators.models.ptpx import Pt, Px, pt2px  # type: ignore
-
-from hat.comparators.models.unit import em2px
-
-FontPath = NewType("FontPath", str)
-FontName = NewType("FontName", str)
+from hat.comparators.models.unit import FontName, FontPath, em2px
 
 
 def find_font_path(

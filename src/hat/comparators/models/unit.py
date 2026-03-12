@@ -4,6 +4,10 @@ Px = NewType("Px", float)
 Pt = NewType("Pt", float)
 Em = NewType("Em", float)
 
+FontPath = NewType("FontPath", str)
+FontName = NewType("FontName", str)
+
+
 def px2pt(px: Px, dpi: float) -> Pt:
     return Pt(px * 72 / dpi)
 
