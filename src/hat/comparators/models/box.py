@@ -8,3 +8,5 @@ class Box[T]:
     w: T
     h: T
     label: str
+    fontname: str
+    font_size: float
