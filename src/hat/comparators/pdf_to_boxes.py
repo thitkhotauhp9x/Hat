@@ -14,6 +14,8 @@ from PIL import ImageDraw
 from hat.comparators.models.box import Box  # type: ignore
 from hat.comparators.models.ptpx import Pt, Px, pt2px  # type: ignore
 
+from hat.comparators.models.unit import em2px
+
 FontPath = NewType("FontPath", str)
 FontName = NewType("FontName", str)
 
@@ -175,10 +177,6 @@ class PdfToBoxes:
                         box.h = height
 
         PdfToBoxes.debug_boxes(pdf_path, resolution, 0, boxes)
-
-
-def em2px(em, fs, dpi, em_size) -> float:
-    return em * fs * dpi / (em_size * 72)
 
 
 def main():
