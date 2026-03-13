@@ -10,16 +10,10 @@ from pathlib import Path
 import pdfplumber
 from PIL import ImageDraw
 
-from hat.comparators.models.box import Box  # type: ignore
-from hat.comparators.models.font_box import FontBox
-from hat.comparators.models.unit import (
-    FontName,
-    FontPath,  # type: ignore
-    Pt,
-    Px,
-    em2px,
-    pt2px,
-)
+from hat.pdf_to_boxes.models.box import Box  # type: ignore
+from hat.pdf_to_boxes.models.font_box import FontBox
+from hat.pdf_to_boxes.models.unit import FontPath  # type: ignore
+from hat.pdf_to_boxes.models.unit import FontName, Pt, Px, em2px, pt2px
 
 
 def find_font_path(
