@@ -1,0 +1,5 @@
+from typing import TypeAlias
+from hat.tdspy.mermaid_flow_chart_2_json import {{ element_registry | join(", ") }}
+
+
+Element: TypeAlias = {{ element_registry | join(" | ") }}

@@ -1,7 +1,5 @@
 from pydantic import BaseModel
 
-from hat.comparators.models.unit import Em
-
 
 class Box[T](BaseModel):
     x_min: T
@@ -17,6 +15,6 @@ class Character[T](BaseModel):
 
 
 class FontBox[T](BaseModel):
-    em: Em
-    ascent: Em
+    em: float
+    ascent: float
     chars: list[Character[T]]

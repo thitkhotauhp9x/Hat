@@ -8,12 +8,18 @@ from functools import lru_cache
 from pathlib import Path
 
 import pdfplumber
+
 from PIL import ImageDraw
 
-from hat.pdf_to_boxes.models.box import Box  # type: ignore
+from hat.pdf_to_boxes.models.box import Box
 from hat.pdf_to_boxes.models.font_box import FontBox
-from hat.pdf_to_boxes.models.unit import FontPath  # type: ignore
-from hat.pdf_to_boxes.models.unit import FontName, Pt, Px, em2px, pt2px
+from hat.pdf_to_boxes.models.units.font_path import FontPath
+from hat.pdf_to_boxes.models.units.font_name import FontName
+from hat.pdf_to_boxes.models.units.em import Em
+from hat.pdf_to_boxes.models.units.em2pt import Em2Pt
+from hat.pdf_to_boxes.models.units.pt import Pt
+from hat.pdf_to_boxes.models.units.pt2px import Pt2Px
+from hat.pdf_to_boxes.models.units.px import Px
 
 
 def find_font_path(
@@ -44,13 +50,11 @@ class PdfToBoxes:
 
         for char in page.objects["char"]:
             box: Box[Px] = Box(
-                x=pt2px(Pt(char["x0"]), resolution),
-                y=Px(
-                    pt2px(Pt(page.height), resolution)
-                    - pt2px(Pt(char["y1"]), resolution)
-                ),
-                w=pt2px(Pt(char["width"]), resolution),
-                h=pt2px(Pt(char["height"]), resolution),
+                x=Pt2Px(pt=Pt(char["x0"]), dpi=resolution),
+                y=Pt2Px(Pt(page.height), resolution)
+                - Pt2Px(Pt(char["y1"]), resolution),
+                w=Pt2Px(Pt(char["width"]), resolution),
+                h=Pt2Px(Pt(char["height"]), resolution),
                 label=char["text"],
                 fontname=char["fontname"],
                 font_size=char["size"],
@@ -58,7 +62,6 @@ class PdfToBoxes:
             draw = ImageDraw.Draw(image.original)
             PdfToBoxes.draw_box(draw, box)
             boxes.append(box)
-        image.original.save(f"page-{page_index}.png")
         return boxes
 
     @staticmethod
@@ -71,7 +74,6 @@ class PdfToBoxes:
         for box in boxes:
             draw = ImageDraw.Draw(image.original)
             PdfToBoxes.draw_box(draw, box)
-        image.original.save(f"page-{page_index}.final.png")
 
     @staticmethod
     def draw_box(draw, box: Box[Px]):
@@ -109,7 +111,7 @@ class PdfToBoxes:
             return json.loads(temp_path.read_text())
 
     @staticmethod
-    def load_font_info(font_path: Path) -> FontBox:
+    def load_font_info(font_path: Path) -> FontBox[float]:
         with tempfile.NamedTemporaryFile(suffix=".output.json") as temp_file:
             subprocess.run(
                 [
@@ -127,7 +129,7 @@ class PdfToBoxes:
             return FontBox.model_validate_json(temp_path.read_text())
 
     @staticmethod
-    def correct(pdf_path: Path, resolution: int):
+    def convert(pdf_path: Path, resolution: int):
         boxes = PdfToBoxes.read(pdf_path, resolution, 0)
 
         with PdfToBoxes.extract_font(pdf_path) as font_dir:
@@ -141,35 +143,57 @@ class PdfToBoxes:
                         x_max = char.box.x_max
                         y_max = char.box.y_max
 
-                        x_min_px = em2px(x_min, box.font_size, resolution, font_box.em)
-                        y_min_px = em2px(y_min, box.font_size, resolution, font_box.em)
-                        x_max_px = em2px(x_max, box.font_size, resolution, font_box.em)
-                        y_max_px = em2px(y_max, box.font_size, resolution, font_box.em)
+                        x_min_px = Pt2Px(
+                            pt=Em2Pt(
+                                em=Em(x_min),
+                                font_size=box.font_size,
+                                em_size=Em(font_box.em),
+                            ),
+                            dpi=resolution,
+                        )
+                        y_min_px = Pt2Px(
+                            pt=Em2Pt(
+                                em=Em(y_min),
+                                font_size=box.font_size,
+                                em_size=Em(font_box.em),
+                            ),
+                            dpi=resolution,
+                        )
+                        x_max_px = Pt2Px(
+                            pt=Em2Pt(
+                                em=Em(x_max),
+                                font_size=box.font_size,
+                                em_size=Em(font_box.em),
+                            ),
+                            dpi=resolution,
+                        )
+                        y_max_px = Pt2Px(
+                            pt=Em2Pt(
+                                em=Em(y_max),
+                                font_size=box.font_size,
+                                em_size=Em(font_box.em),
+                            ),
+                            dpi=resolution,
+                        )
 
                         width = x_max_px - x_min_px
                         height = y_max_px - y_min_px
                         x = box.x + x_min_px
-                        y = box.y + (
-                            em2px(
-                                font_box.ascent,
-                                box.font_size,
-                                resolution,
-                                font_box.em,
+                        y = (
+                            box.y
+                            + Pt2Px(
+                                pt=Em2Pt(
+                                    em=Em(font_box.ascent),
+                                    font_size=box.font_size,
+                                    em_size=Em(font_box.em),
+                                ),
+                                dpi=resolution,
                             )
                             - y_max_px
                         )
-
                         box.x = x
                         box.y = y
                         box.w = width
                         box.h = height
 
         PdfToBoxes.debug_boxes(pdf_path, resolution, 0, boxes)
-
-
-def main():
-    PdfToBoxes().correct(Path("/Users/manhdt/Projects/Hat/tests/data/doc1.pdf"), 300)
-
-
-if __name__ == "__main__":
-    main()
