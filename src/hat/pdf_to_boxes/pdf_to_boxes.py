@@ -41,36 +41,36 @@ def load_font_info(font_dir: Path, fontname: str) -> FontBox:
 
 @dataclass
 class PdfToBoxes:
-    @staticmethod
-    def read(file_path: Path, resolution: int, page_index: int) -> list[Box[Px]]:
+    file_path: Path
+    resolution: int
+    page_index: int
+
+    def read(self) -> list[Box[Px]]:
         boxes: list[Box[Px]] = []
-        pdf = pdfplumber.open(file_path.as_posix())
-        page = pdf.pages[page_index]
-        image = page.to_image(resolution=resolution)
+        pdf = pdfplumber.open(self.file_path.as_posix())
+        page = pdf.pages[self.page_index]
+        image = page.to_image(resolution=self.resolution)
 
         for char in page.objects["char"]:
             box: Box[Px] = Box(
-                x=Pt2Px(pt=Pt(char["x0"]), dpi=resolution),
-                y=Pt2Px(Pt(page.height), resolution)
-                - Pt2Px(Pt(char["y1"]), resolution),
-                w=Pt2Px(Pt(char["width"]), resolution),
-                h=Pt2Px(Pt(char["height"]), resolution),
+                x=Pt2Px(pt=Pt(char["x0"]), dpi=self.resolution),
+                y=Pt2Px(Pt(page.height), self.resolution)
+                - Pt2Px(Pt(char["y1"]), self.resolution),
+                w=Pt2Px(Pt(char["width"]), self.resolution),
+                h=Pt2Px(Pt(char["height"]), self.resolution),
                 label=char["text"],
                 fontname=char["fontname"],
                 font_size=char["size"],
             )
-            draw = ImageDraw.Draw(image.original)
-            PdfToBoxes.draw_box(draw, box)
+            # draw = ImageDraw.Draw(image.original)
+            # PdfToBoxes.draw_box(draw, box)
             boxes.append(box)
         return boxes
 
-    @staticmethod
-    def debug_boxes(
-        file_path: Path, resolution: int, page_index: int, boxes: list[Box[Px]]
-    ):
-        pdf = pdfplumber.open(file_path.as_posix())
+    def debug_boxes(self, page_index: int, boxes: list[Box[Px]]):
+        pdf = pdfplumber.open(self.file_path.as_posix())
         page = pdf.pages[page_index]
-        image = page.to_image(resolution=resolution)
+        image = page.to_image(resolution=self.resolution)
         for box in boxes:
             draw = ImageDraw.Draw(image.original)
             PdfToBoxes.draw_box(draw, box)
@@ -83,11 +83,12 @@ class PdfToBoxes:
             width=1,
         )
 
-    @staticmethod
     @contextmanager
-    def extract_font(pdf_path: Path) -> Generator[Path, None, None]:
+    def extract_font(self) -> Generator[Path, None, None]:
         with tempfile.TemporaryDirectory() as temp_dir:
-            subprocess.run(["mutool", "extract", pdf_path.as_posix()], cwd=temp_dir)
+            subprocess.run(
+                ["mutool", "extract", self.file_path.as_posix()], cwd=temp_dir
+            )
             yield Path(temp_dir)
 
     @staticmethod
@@ -128,11 +129,10 @@ class PdfToBoxes:
             assert temp_path.exists()
             return FontBox.model_validate_json(temp_path.read_text())
 
-    @staticmethod
-    def convert(pdf_path: Path, resolution: int):
-        boxes = PdfToBoxes.read(pdf_path, resolution, 0)
+    def convert(self):
+        boxes = self.read()
 
-        with PdfToBoxes.extract_font(pdf_path) as font_dir:
+        with self.extract_font() as font_dir:
             for box in boxes:
                 font_box = load_font_info(font_dir, box.fontname)
                 for char in font_box.chars:
@@ -149,7 +149,7 @@ class PdfToBoxes:
                                 font_size=box.font_size,
                                 em_size=Em(font_box.em),
                             ),
-                            dpi=resolution,
+                            dpi=self.resolution,
                         )
                         y_min_px = Pt2Px(
                             pt=Em2Pt(
@@ -157,7 +157,7 @@ class PdfToBoxes:
                                 font_size=box.font_size,
                                 em_size=Em(font_box.em),
                             ),
-                            dpi=resolution,
+                            dpi=self.resolution,
                         )
                         x_max_px = Pt2Px(
                             pt=Em2Pt(
@@ -165,7 +165,7 @@ class PdfToBoxes:
                                 font_size=box.font_size,
                                 em_size=Em(font_box.em),
                             ),
-                            dpi=resolution,
+                            dpi=self.resolution,
                         )
                         y_max_px = Pt2Px(
                             pt=Em2Pt(
@@ -173,7 +173,7 @@ class PdfToBoxes:
                                 font_size=box.font_size,
                                 em_size=Em(font_box.em),
                             ),
-                            dpi=resolution,
+                            dpi=self.resolution,
                         )
 
                         width = x_max_px - x_min_px
@@ -187,7 +187,7 @@ class PdfToBoxes:
                                     font_size=box.font_size,
                                     em_size=Em(font_box.em),
                                 ),
-                                dpi=resolution,
+                                dpi=self.resolution,
                             )
                             - y_max_px
                         )
@@ -196,4 +196,4 @@ class PdfToBoxes:
                         box.w = width
                         box.h = height
 
-        PdfToBoxes.debug_boxes(pdf_path, resolution, 0, boxes)
+        self.debug_boxes(0, boxes)
