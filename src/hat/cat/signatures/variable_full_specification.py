@@ -30,6 +30,7 @@ class VariableFullSpecification(dspy.Signature):
 def get_variable_full_specification(
     variable_name: str, variable_definition: str
 ) -> str:
+    dspy.configure(lm=dspy.LM("openai/gpt-4o-mini"))
     predict = dspy.ChainOfThought(VariableFullSpecification)
     response = predict(
         variable_name=variable_name, variable_definition=variable_definition
