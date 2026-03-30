@@ -4,9 +4,9 @@ from urllib.parse import urlparse
 
 import requests
 
-from hat.cat.requests.anki_media_client import AnkiMediaClient
-from hat.cat.requests.anki_note_client import AnkiNoteClient
-from hat.cat.requests.ldoce_client import LDOCEClient
+from hat.anki_flashcard_generator.anki_media_client import AnkiMediaClient
+from hat.anki_flashcard_generator.anki_note_client import AnkiNoteClient
+from hat.anki_flashcard_generator.ldoce_client import LDOCEClient
 
 
 class AutoFlashcardGenerator:

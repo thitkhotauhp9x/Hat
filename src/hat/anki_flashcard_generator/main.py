@@ -1,6 +1,6 @@
 import argparse
 
-from hat.cat.requests.auto_flashcard_generator import AutoFlashcardGenerator
+from hat.anki_flashcard_generator.auto_flashcard_generator import AutoFlashcardGenerator
 
 
 def main() -> None:
